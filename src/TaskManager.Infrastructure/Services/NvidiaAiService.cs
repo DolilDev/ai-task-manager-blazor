@@ -41,18 +41,15 @@ public class NvidiaAiService : ITaskAiService
 
         try
         {
-            var prompt = $"""
-                Analyze this task and respond with ONLY valid JSON (no markdown, no explanation):
-                {{
-                  "category": "one of: Work, Personal, Health, Learning, Finance, Other",
-                  "estimatedMinutes": <integer estimate>,
-                  "priority": "one of: Low, Medium, High, Critical",
-                  "aiSuggestion": "brief actionable suggestion for completing this task"
-                }}
-
-                Title: {title}
-                Description: {description}
-                """;
+            var prompt =
+                "Analyze this task and respond with ONLY valid JSON (no markdown, no explanation):\n" +
+                "{\n" +
+                "  \"category\": \"one of: Work, Personal, Health, Learning, Finance, Other\",\n" +
+                "  \"estimatedMinutes\": <integer estimate>,\n" +
+                "  \"priority\": \"one of: Low, Medium, High, Critical\",\n" +
+                "  \"aiSuggestion\": \"brief actionable suggestion for completing this task\"\n" +
+                "}\n\n" +
+                $"Title: {title}\nDescription: {description}";
 
             var requestBody = new
             {
