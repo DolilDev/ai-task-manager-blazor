@@ -2,6 +2,9 @@
 
 A Blazor Server task management application built with .NET 9 and Clean Architecture. Create tasks and let NVIDIA AI (Llama 3.1) automatically categorize, estimate time, set priority, and suggest next steps.
 
+## Preview
+<img width="1192" height="713" alt="preview" src="https://github.com/user-attachments/assets/ad1739fa-7a2a-496c-adb0-a6774a5432c1" />
+
 ## Architecture
 
 ```
