@@ -22,7 +22,7 @@ TaskManager.sln
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/DolilDev/ai-task-manager-blazor.git
    cd ai-task-manager-blazor
    ```
 
