@@ -1,0 +1,74 @@
+@using TaskManager.Application.DTOs
+@using TaskManager.Application.UseCases
+@using TaskManager.Domain.Enums
+
+<div class="task-list" @key="RefreshKey">
+    @if (Tasks is null || !Tasks.Any())
+    {
+        <p class="empty-state">No tasks yet. Create your first task above!</p>
+    }
+    else
+    {
+        <table class="task-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Est. Time</th>
+                    <th>Status</th>
+                    <th>AI Suggestion</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var task in Tasks)
+                {
+                    <tr>
+                        <td>
+                            <strong>@task.Title</strong>
+                            @if (!string.IsNullOrWhiteSpace(task.Description))
+                            {
+                                <div class="task-description">@task.Description</div>
+                            }
+                        </td>
+                        <td><span class="category-tag">@task.Category</span></td>
+                        <td><span class="priority-badge priority-@task.Priority.ToString().ToLower()">@task.Priority</span></td>
+                        <td>@task.EstimatedMinutes min</td>
+                        <td><span class="status-badge status-@task.Status.ToString().ToLower()">@task.Status</span></td>
+                        <td class="ai-suggestion">@task.AiSuggestion</td>
+                        <td>
+                            <select class="status-select" value="@task.Status.ToString()"
+                                    @onchange="e => HandleStatusChange(task.Id, e)">
+                                @foreach (var status in Enum.GetValues<TaskStatus>())
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Inject] private UpdateTaskStatusUseCase UpdateTaskStatusUseCase { get; set; } = default!;
+
+    [Parameter] public IEnumerable<TaskDto> Tasks { get; set; } = [];
+    [Parameter] public EventCallback OnStatusChanged { get; set; }
+    [Parameter] public int RefreshKey { get; set; }
+
+    private async Task HandleStatusChange(Guid taskId, ChangeEventArgs e)
+    {
+        if (e.Value is null)
+            return;
+
+        if (Enum.TryParse<TaskStatus>(e.Value.ToString(), out var newStatus))
+        {
+            await UpdateTaskStatusUseCase.ExecuteAsync(taskId, newStatus);
+            await OnStatusChanged.InvokeAsync();
+        }
+    }
+}

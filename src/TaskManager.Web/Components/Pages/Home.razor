@@ -1,0 +1,67 @@
+@page "/"
+@using TaskManager.Application.DTOs
+@using TaskManager.Application.UseCases
+@using TaskManager.Domain.Enums
+
+<PageTitle>AI Task Manager</PageTitle>
+
+<div class="home-page">
+    <AddTask OnTaskCreated="HandleTaskCreated" />
+
+    <section class="task-section">
+        <div class="filter-bar">
+            <span class="filter-label">Filter:</span>
+            <button class="filter-btn @(ActiveFilter is null ? "active" : "")"
+                    @onclick="() => SetFilter(null)">All</button>
+            <button class="filter-btn @(ActiveFilter == TaskStatus.Todo ? "active" : "")"
+                    @onclick="() => SetFilter(TaskStatus.Todo)">Todo</button>
+            <button class="filter-btn @(ActiveFilter == TaskStatus.InProgress ? "active" : "")"
+                    @onclick="() => SetFilter(TaskStatus.InProgress)">InProgress</button>
+            <button class="filter-btn @(ActiveFilter == TaskStatus.Done ? "active" : "")"
+                    @onclick="() => SetFilter(TaskStatus.Done)">Done</button>
+        </div>
+
+        <TaskList Tasks="FilteredTasks"
+                  OnStatusChanged="HandleStatusChanged"
+                  RefreshKey="@RefreshKey" />
+    </section>
+</div>
+
+@code {
+    [Inject] private GetAllTasksUseCase GetAllTasksUseCase { get; set; } = default!;
+
+    private IReadOnlyList<TaskDto> AllTasks { get; set; } = [];
+    private TaskStatus? ActiveFilter { get; set; }
+    private int RefreshKey { get; set; }
+
+    private IEnumerable<TaskDto> FilteredTasks =>
+        ActiveFilter is null
+            ? AllTasks
+            : AllTasks.Where(t => t.Status == ActiveFilter);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTasksAsync();
+    }
+
+    private async Task LoadTasksAsync()
+    {
+        AllTasks = await GetAllTasksUseCase.ExecuteAsync();
+        RefreshKey++;
+    }
+
+    private void SetFilter(TaskStatus? status)
+    {
+        ActiveFilter = status;
+    }
+
+    private async Task HandleTaskCreated()
+    {
+        await LoadTasksAsync();
+    }
+
+    private async Task HandleStatusChanged()
+    {
+        await LoadTasksAsync();
+    }
+}

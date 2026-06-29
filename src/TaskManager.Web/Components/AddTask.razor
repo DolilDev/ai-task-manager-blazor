@@ -1,0 +1,81 @@
+@using TaskManager.Application.DTOs
+@using TaskManager.Application.UseCases
+@using TaskManager.Domain.Enums
+
+<div class="add-task-card">
+    <h2>Add New Task</h2>
+
+    <EditForm Model="@FormModel" OnValidSubmit="HandleSubmit">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <InputText id="title" @bind-Value="FormModel.Title" class="form-input" placeholder="What needs to be done?" />
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <InputTextArea id="description" @bind-Value="FormModel.Description" class="form-input form-textarea"
+                           placeholder="Add details (optional)" rows="3" />
+        </div>
+
+        <button type="submit" class="btn-primary" disabled="@IsSubmitting">
+            @if (IsSubmitting)
+            {
+                <span class="spinner"></span>
+                <span>AI is analyzing...</span>
+            }
+            else
+            {
+                <span>Create Task</span>
+            }
+        </button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <p class="error-message">@ErrorMessage</p>
+    }
+</div>
+
+@code {
+    [Inject] private CreateTaskUseCase CreateTaskUseCase { get; set; } = default!;
+
+    [Parameter] public EventCallback OnTaskCreated { get; set; }
+
+    private AddTaskForm FormModel { get; set; } = new();
+    private bool IsSubmitting { get; set; }
+    private string? ErrorMessage { get; set; }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(FormModel.Title))
+        {
+            ErrorMessage = "Title is required.";
+            return;
+        }
+
+        IsSubmitting = true;
+        ErrorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            await CreateTaskUseCase.ExecuteAsync(FormModel.Title.Trim(), FormModel.Description.Trim());
+            FormModel = new AddTaskForm();
+            await OnTaskCreated.InvokeAsync();
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Failed to create task. Please try again.";
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+
+    private sealed class AddTaskForm
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}
